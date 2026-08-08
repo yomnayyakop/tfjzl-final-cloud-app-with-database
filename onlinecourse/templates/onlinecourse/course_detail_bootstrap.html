@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     {% load static %}
+    {% load static %}
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <meta charset="UTF-8">
+    <title>{{ course.name }}</title>
 </head>
 
 <body>
@@ -14,7 +15,7 @@
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <div class="navbar-header">
-                  <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
+                <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
             </div>
             <ul class="nav navbar-nav navbar-right">
                 {% if user.is_authenticated %}
@@ -27,8 +28,8 @@
                     <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
                         {% csrf_token %}
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Username" name="username" >
-                            <input type="password" class="form-control" placeholder="Username" name="psw" >
+                            <input type="text" class="form-control" placeholder="Username" name="username">
+                            <input type="password" class="form-control" placeholder="Password" name="psw">
                             <button class="btn btn-primary" type="submit">Login</button>
                             <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
                         </div>
@@ -41,16 +42,61 @@
 
     <!-- Page content -->
     <div class="container-fluid">
-            <h2>{{ course.name }}</h2>
-            <div class="card-columns-vertical">
-                {% for lesson in course.lesson_set.all %}
-                    <div class="card mt-1">
-                        <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
-                        <div class="card-body">{{lesson.content}}</div>
-                    </div>
-                {% endfor %}
+        <h2>{{ course.name }}</h2>
+        <div class="card-columns-vertical">
+            {% for lesson in course.lesson_set.all %}
+                <div class="card mt-1">
+                    <div class="card-header"><h5>Lesson {{ lesson.order|add:1 }}: {{ lesson.title }}</h5></div>
+                    <div class="card-body">{{ lesson.content }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Course Exam Section -->
+        {% if user.is_authenticated %}
+        <div class="mt-4 mb-5">
+            <!-- Start Exam Button triggering collapsible div -->
+            <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#examCollapse" aria-expanded="false" aria-controls="examCollapse">
+                Start Exam
+            </button>
+
+            <!-- Collapsible Exam Container -->
+            <div class="collapse mt-3" id="examCollapse">
+                <div class="card card-body">
+                    <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
+                        {% csrf_token %}
+                        
+                        {% for question in course.question_set.all %}
+                        <div class="card mb-3">
+                            <!-- Question UI Header -->
+                            <div class="card-header bg-light">
+                                <h5>Question {{ forloop.counter }}: {{ question.content }}</h5>
+                            </div>
+                            
+                            <!-- Choices Components -->
+                            <div class="card-body">
+                                {% for choice in question.choice_set.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="choice_{{ choice.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}">
+                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                        {{ choice.content }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">No questions available for this course exam.</p>
+                        {% endfor %}
+
+                        {% if course.question_set.all %}
+                        <button type="submit" class="btn btn-success btn-block mt-3">Submit Exam</button>
+                        {% endif %}
+                    </form>
+                </div>
             </div>
-            <!-- Course detail template changes go here -->
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>
