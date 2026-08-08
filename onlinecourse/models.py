@@ -7,10 +7,8 @@ except Exception:
     sys.exit()
 
 from django.conf import settings
-import uuid
 
 
-# Instructor model
 class Instructor(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -23,7 +21,6 @@ class Instructor(models.Model):
         return self.user.username
 
 
-# Learner model
 class Learner(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -51,7 +48,6 @@ class Learner(models.Model):
         return self.user.username + "," + self.occupation
 
 
-# Course model
 class Course(models.Model):
     name = models.CharField(null=False, max_length=30, default='online course')
     image = models.ImageField(upload_to='course_images/')
@@ -66,7 +62,6 @@ class Course(models.Model):
         return "Name: " + self.name + "," + "Description: " + self.description
 
 
-# Lesson model
 class Lesson(models.Model):
     title = models.CharField(max_length=200, default="title")
     order = models.IntegerField(default=0)
@@ -74,7 +69,6 @@ class Lesson(models.Model):
     content = models.TextField()
 
 
-# Enrollment model
 class Enrollment(models.Model):
     AUDIT = 'audit'
     HONOR = 'honor'
@@ -91,7 +85,6 @@ class Enrollment(models.Model):
     rating = models.FloatField(default=5.0)
 
 
-# Question model
 class Question(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
@@ -101,10 +94,7 @@ class Question(models.Model):
         return "Question: " + self.content
 
     def is_get_score(self, selected_ids):
-        """
-        Calculates if the selected choice IDs for this question earn the grade points.
-        Returns True/False (or grade/0 depending on your test specification).
-        """
+        """Calculates score based on selected choices."""
         all_answers = self.choice_set.filter(is_correct=True).count()
         selected_correct = self.choice_set.filter(is_correct=True, id__in=selected_ids).count()
         if all_answers == selected_correct and self.choice_set.filter(is_correct=False, id__in=selected_ids).count() == 0:
@@ -112,7 +102,6 @@ class Question(models.Model):
         return False
 
 
-# Choice model
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
@@ -122,7 +111,6 @@ class Choice(models.Model):
         return self.content
 
 
-# Submission model
 class Submission(models.Model):
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
     choices = models.ManyToManyField(Choice)
